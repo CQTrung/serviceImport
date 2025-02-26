@@ -94,6 +94,7 @@
                 <version>${spring.boot.version}</version>
                 <configuration>
                     <mainClass>org.example.Main</mainClass> <!-- Đảm bảo Main-Class đúng -->
+                    <layout>jar</layout> <!-- Tạo Fat JAR với tất cả dependencies -->
                 </configuration>
             </plugin>
 
@@ -109,6 +110,7 @@
             </plugin>
         </plugins>
     </build>
+
 
 
 
