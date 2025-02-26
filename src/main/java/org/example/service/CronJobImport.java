@@ -38,9 +38,10 @@ public class CronJobImport {
             try {
 
 
-                String filePath = file.getPathFile() + File.separator + file.getFileName();
+//                String filePath = file.getPathFile() + File.separator + file.getFileName();
+                String filePath = file.getPathFile();
                 File excelFile = new File(filePath);
-
+                System.out.println("Tên path file: " + filePath);
                 if (excelFile.exists()) {
                     System.out.println("Đang xử lý file: " + filePath);
                     // Cập nhật trạng thái thành PROCESSING ngay lập tức
@@ -53,100 +54,6 @@ public class CronJobImport {
                 } else {
                     System.err.println("File không tồn tại: " + filePath);
                 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
             } catch (Exception e) {
                 e.printStackTrace();
                 System.err.println("Lỗi khi cập nhật trạng thái file: " + file.getFileName());
