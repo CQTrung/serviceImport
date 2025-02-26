@@ -124,7 +124,7 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>org.example.MainApplication</mainClass> <!-- Đổi MainApplication thành class chính xác -->
+                            <mainClass>org.example.Main</mainClass> <!-- Đổi MainApplication thành class chính xác -->
                         </manifest>
                     </archive>
                 </configuration>
