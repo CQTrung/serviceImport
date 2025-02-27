@@ -76,8 +76,8 @@ public class DeliveryOrderService extends BaseService {
         int[] status = {11, 17};
         int batchSize = 500;
         int totalSize = shipmentOrderList.size();
-        int processedOrders = 0;
-        int progress = 0;
+//        int processedOrders = 0;
+        int progress = 20;
 
         for (ShipmentOrderImportExcelRequest shipmentOrder : shipmentOrderList) {
             DtbRttDeliveryOrder dtbRttDeliveryOrder =
@@ -98,11 +98,11 @@ public class DeliveryOrderService extends BaseService {
                             shipmentOrder.getDeliverOrderRequest());
                     doUpdate.setDeliveryStatus(doUpdate.getStatusType().length() < 3 ? "D" : "T");
 
-//                    ShipmentOrderImportExcelResponse shipmentOrderResponse = new ShipmentOrderImportExcelResponse();
-//                        shipmentOrderResponse.setImportKey(null);
-//                        shipmentOrderResponse.setErrorDetail(null);
-//                        shipmentOrderResponse.setDeliveryOrder(shipmentOrder.getDeliverOrderRequest());
-//                        DOUpdate.add(shipmentOrderResponse);
+                    ShipmentOrderImportExcelResponse shipmentOrderResponse = new ShipmentOrderImportExcelResponse();
+                        shipmentOrderResponse.setImportKey(null);
+                        shipmentOrderResponse.setErrorDetail(null);
+                        shipmentOrderResponse.setDeliveryOrder(shipmentOrder.getDeliverOrderRequest());
+                        DOUpdate.add(shipmentOrderResponse);
                     updateOrders.add(doUpdate);
 
                     if (updateOrders.size() >= batchSize) {
@@ -128,6 +128,12 @@ public class DeliveryOrderService extends BaseService {
                     // Thêm vào error key
                     deliveryOrderFilefile.setErrorKey(deliveryOrderTemp.getImportKey());
                     deliveryOrderFileRepository.save(deliveryOrderFilefile);
+
+                    ShipmentOrderImportExcelResponse shipmentOrderResponse = new ShipmentOrderImportExcelResponse();
+                    shipmentOrderResponse.setImportKey(importKeys);
+                    shipmentOrderResponse.setErrorDetail("Key duplicated");
+                    shipmentOrderResponse.setDeliveryOrder(shipmentOrder.getDeliverOrderRequest());
+                    DOFails.add(shipmentOrderResponse);
                 }
             }
 
@@ -148,6 +154,11 @@ public class DeliveryOrderService extends BaseService {
                             deliveryOrderFilefile.setProgress(progress);
                             deliveryOrderFileRepository.save(deliveryOrderFilefile);
                         }
+                        ShipmentOrderImportExcelResponse shipmentOrderResponse = new ShipmentOrderImportExcelResponse();
+                        shipmentOrderResponse.setImportKey(null);
+                        shipmentOrderResponse.setErrorDetail(null);
+                        shipmentOrderResponse.setDeliveryOrder(shipmentOrder.getDeliverOrderRequest());
+                        DOValid.add(shipmentOrderResponse);
                     } else {
                         DtbRttDeliveryOrderTemp deliveryOrderTemp =
                                 DeliveryOrderTempMapping.convertToEntity(shipmentOrder.getDeliverOrderRequest());
@@ -162,26 +173,18 @@ public class DeliveryOrderService extends BaseService {
                         // Thêm vào error key
                         deliveryOrderFilefile.setErrorKey(deliveryOrderTemp.getImportKey());
                         deliveryOrderFileRepository.save(deliveryOrderFilefile);
+                        ShipmentOrderImportExcelResponse shipmentOrderResponse = new ShipmentOrderImportExcelResponse();
+                        shipmentOrderResponse.setImportKey(importKeys);
+                        shipmentOrderResponse.setErrorDetail("Key duplicated");
+                        shipmentOrderResponse.setDeliveryOrder(shipmentOrder.getDeliverOrderRequest());
+                        DOFails.add(shipmentOrderResponse);
                     }
                 }
-                progress = Math.min(100, (validOrders.size() + updateOrders.size()) * 100 / totalSize);
-                deliveryOrderFilefile.setProgress(progress);
-                deliveryOrderFileRepository.save(deliveryOrderFilefile);
+//                progress = Math.min(100, (validOrders.size() + updateOrders.size()) * 100 / totalSize);
+//                deliveryOrderFilefile.setProgress(progress);
+//                deliveryOrderFileRepository.save(deliveryOrderFilefile);
                 continue;
             }
-
-            // 🟢 Trường hợp không có DeliveryOrderNumber
-//            if (!StringUtils.hasText(deliveryOrderNumber)) {
-//                dtbRttDeliveryOrder.setStatus(DeliveryOrderStatus.UNASSIGNED.getValue());
-//                dtbRttDeliveryOrder.setDeliveryStatus(
-//                        dtbRttDeliveryOrder.getStatusType().length() < 2 ? "D" : "T");
-//                validOrders.add(dtbRttDeliveryOrder);
-//
-//                if (validOrders.size() >= batchSize) {
-//                    deliveryOrderRepository.saveAll(validOrders);
-//                    validOrders.clear();
-//                }
-//            }
 
             if (!StringUtils.hasText(shipmentOrder.getDeliverOrderRequest().getDeliveryOrderNumber())) {
                 String key = shipmentOrder.getDeliverOrderRequest().getCompanyId()
@@ -211,11 +214,11 @@ public class DeliveryOrderService extends BaseService {
                             dtbRttDeliveryOrder.setOriginSite(concatenatedString);
                         }
 
-//                        ShipmentOrderImportExcelResponse shipmentOrderResponse = new ShipmentOrderImportExcelResponse();
-//                        shipmentOrderResponse.setImportKey(null);
-//                        shipmentOrderResponse.setErrorDetail(null);
-//                        shipmentOrderResponse.setDeliveryOrder(shipmentOrder.getDeliverOrderRequest());
-//                        DOValid.add(shipmentOrderResponse);
+                        ShipmentOrderImportExcelResponse shipmentOrderResponse = new ShipmentOrderImportExcelResponse();
+                        shipmentOrderResponse.setImportKey(null);
+                        shipmentOrderResponse.setErrorDetail(null);
+                        shipmentOrderResponse.setDeliveryOrder(shipmentOrder.getDeliverOrderRequest());
+                        DOValid.add(shipmentOrderResponse);
                         validOrders.add(dtbRttDeliveryOrder);
 
                         if (validOrders.size() >= batchSize) {
@@ -245,6 +248,7 @@ public class DeliveryOrderService extends BaseService {
                         shipmentOrderResponse.setErrorDetail("Site ID Null");
                         shipmentOrderResponse.setDeliveryOrder(shipmentOrder.getDeliverOrderRequest());
                         DOFails.add(shipmentOrderResponse);
+
                         tempOrders.add(deliveryOrderTemp);
 
                         if (tempOrders.size() >= batchSize) {
@@ -270,6 +274,7 @@ public class DeliveryOrderService extends BaseService {
                     // Thêm vào error key
                     deliveryOrderFilefile.setErrorKey(deliveryOrderTemp.getImportKey());
                     deliveryOrderFileRepository.save(deliveryOrderFilefile);
+
                     ShipmentOrderImportExcelResponse shipmentOrderResponse = new ShipmentOrderImportExcelResponse();
                     shipmentOrderResponse.setImportKey(importKeys);
                     shipmentOrderResponse.setErrorDetail("Key duplicated");
@@ -279,30 +284,36 @@ public class DeliveryOrderService extends BaseService {
                 }
             }
 
-            progress = Math.min(100, (validOrders.size() + updateOrders.size()) * 100 / totalSize);
-            deliveryOrderFilefile.setProgress(progress);
-            deliveryOrderFileRepository.save(deliveryOrderFilefile);
+//            progress = Math.min(100, (validOrders.size() + updateOrders.size()) * 100 / totalSize);
+//            deliveryOrderFilefile.setProgress(progress);
+//            deliveryOrderFileRepository.save(deliveryOrderFilefile);
         }
 
         // 🟢 Lưu nốt các bản ghi còn lại nếu chưa đủ batchSize
         if (!validOrders.isEmpty()) {
+            deliveryOrderFilefile.setProgress(60);
+            deliveryOrderFileRepository.save(deliveryOrderFilefile);
             deliveryOrderRepository.saveAll(validOrders);
         }
 
         if (!updateOrders.isEmpty()) {
+            deliveryOrderFilefile.setProgress(60);
+            deliveryOrderFileRepository.save(deliveryOrderFilefile);
             deliveryOrderRepository.saveAll(updateOrders);
         }
 
         if (!tempOrders.isEmpty()) {
+            deliveryOrderFilefile.setProgress(60);
+            deliveryOrderFileRepository.save(deliveryOrderFilefile);
             deliveryOrderTempRepository.saveAll(tempOrders);
         }
 
         progress = 100;
         deliveryOrderFilefile.setProgress(100);
         deliveryOrderFilefile.setTotalRecord(shipmentOrderList.size());
-        deliveryOrderFilefile.setFailRecord(tempOrders.size());
-        deliveryOrderFilefile.setSuccessRecord(validOrders.size());
-        deliveryOrderFilefile.setUpdateRecord(updateOrders.size());
+        deliveryOrderFilefile.setFailRecord(DOFails.size());
+        deliveryOrderFilefile.setSuccessRecord(DOValid.size());
+        deliveryOrderFilefile.setUpdateRecord(DOUpdate.size());
         deliveryOrderFileRepository.save(deliveryOrderFilefile);
 
 //        responseInport.setTotal(shipmentOrderList.size());
