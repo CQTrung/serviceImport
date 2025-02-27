@@ -27,5 +27,9 @@ public class DtbRttDeliveryOrderFile extends EntityBase {
     private Integer progress;
     private String errorKey;
     private String siteDc;
+    private Integer totalRecord;
+    private Integer successRecord;
+    private Integer updateRecord;
+    private Integer failRecord;
 }
 
