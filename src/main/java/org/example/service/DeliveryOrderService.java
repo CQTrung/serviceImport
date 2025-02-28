@@ -76,8 +76,9 @@ public class DeliveryOrderService extends BaseService {
         int[] status = {11, 17};
         int batchSize = 500;
         int totalSize = shipmentOrderList.size();
-//        int processedOrders = 0;
-        int progress = 20;
+        int processedOrders = 0;
+        int progress = 0;
+        int lastProgress = 0;
 
         for (ShipmentOrderImportExcelRequest shipmentOrder : shipmentOrderList) {
             DtbRttDeliveryOrder dtbRttDeliveryOrder =
@@ -109,9 +110,6 @@ public class DeliveryOrderService extends BaseService {
                         deliveryOrderRepository.saveAll(updateOrders);
                         updateOrders.clear();
                     }
-                    progress = Math.min(100, (validOrders.size() + updateOrders.size()) * 100 / totalSize);
-                    deliveryOrderFilefile.setProgress(progress);
-                    deliveryOrderFileRepository.save(deliveryOrderFilefile);
                     continue;
                 }else {
                     DtbRttDeliveryOrderTemp deliveryOrderTemp =
@@ -150,9 +148,6 @@ public class DeliveryOrderService extends BaseService {
                         if (validOrders.size() >= batchSize) {
                             deliveryOrderRepository.saveAll(validOrders);
                             validOrders.clear();
-                            progress = Math.min(100, (validOrders.size() + updateOrders.size()) * 100 / totalSize);
-                            deliveryOrderFilefile.setProgress(progress);
-                            deliveryOrderFileRepository.save(deliveryOrderFilefile);
                         }
                         ShipmentOrderImportExcelResponse shipmentOrderResponse = new ShipmentOrderImportExcelResponse();
                         shipmentOrderResponse.setImportKey(null);
@@ -180,9 +175,6 @@ public class DeliveryOrderService extends BaseService {
                         DOFails.add(shipmentOrderResponse);
                     }
                 }
-//                progress = Math.min(100, (validOrders.size() + updateOrders.size()) * 100 / totalSize);
-//                deliveryOrderFilefile.setProgress(progress);
-//                deliveryOrderFileRepository.save(deliveryOrderFilefile);
                 continue;
             }
 
@@ -284,32 +276,33 @@ public class DeliveryOrderService extends BaseService {
                 }
             }
 
-//            progress = Math.min(100, (validOrders.size() + updateOrders.size()) * 100 / totalSize);
-//            deliveryOrderFilefile.setProgress(progress);
-//            deliveryOrderFileRepository.save(deliveryOrderFilefile);
+            processedOrders++;
+            progress = Math.min((processedOrders * 100) / totalSize, 100);
+
+            if (processedOrders % 1000 == 0 || processedOrders == totalSize) {
+                System.out.println("progress -> :: "+ progress);
+                deliveryOrderFilefile.setProgress(progress);
+                deliveryOrderFileRepository.save(deliveryOrderFilefile);
+            }
         }
 
         // 🟢 Lưu nốt các bản ghi còn lại nếu chưa đủ batchSize
         if (!validOrders.isEmpty()) {
-            deliveryOrderFilefile.setProgress(60);
-            deliveryOrderFileRepository.save(deliveryOrderFilefile);
             deliveryOrderRepository.saveAll(validOrders);
         }
 
         if (!updateOrders.isEmpty()) {
-            deliveryOrderFilefile.setProgress(60);
-            deliveryOrderFileRepository.save(deliveryOrderFilefile);
+
             deliveryOrderRepository.saveAll(updateOrders);
         }
 
         if (!tempOrders.isEmpty()) {
-            deliveryOrderFilefile.setProgress(60);
-            deliveryOrderFileRepository.save(deliveryOrderFilefile);
+
             deliveryOrderTempRepository.saveAll(tempOrders);
         }
 
-        progress = 100;
-        deliveryOrderFilefile.setProgress(100);
+//        deliveryOrderFilefile.setProgress(100);
+
         deliveryOrderFilefile.setTotalRecord(shipmentOrderList.size());
         deliveryOrderFilefile.setFailRecord(DOFails.size());
         deliveryOrderFilefile.setSuccessRecord(DOValid.size());
