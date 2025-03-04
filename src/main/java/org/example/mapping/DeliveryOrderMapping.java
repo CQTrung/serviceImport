@@ -4,6 +4,7 @@ package org.example.mapping;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.example.DTO.DeliveryOrderImportExcelRequest;
 import org.example.DTO.DeliveryOrderRequest;
@@ -16,23 +17,38 @@ import org.springframework.util.StringUtils;
 public class DeliveryOrderMapping {
 
 
+    private static final AtomicLong COUNTER = new AtomicLong(System.nanoTime()); // Số thứ tự an toàn trong đa luồng
 
     private static int counter = 0;
 
     public static DtbRttDeliveryOrder convertFromExcel(DeliveryOrderImportExcelRequest request) {
         DtbRttDeliveryOrder dtbRttDeliveryOrder = new DtbRttDeliveryOrder();
 
-        if(!StringUtils.hasText(request.getDeliveryOrderNumber())){
-            counter++;
-            String counterString = String.format("%05d", counter);
-            // Get the current year and date
-            // int currentYear = LocalDate.now().getYear();
+//        if(!StringUtils.hasText(request.getDeliveryOrderNumber())){
+//            counter++;
+//            String counterString = String.format("%05d", counter);
+//            // Get the current year and date
+//            // int currentYear = LocalDate.now().getYear();
+//            String currentDate = LocalDateTime.now()
+//                    .format(DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS"));;
+//            // Concatenate brandID, currentYear, and currentDate
+//            String deliveryOrderNumber = request.getBranchId() + currentDate + counterString;
+//            dtbRttDeliveryOrder.setDeliveryOrderNumber(deliveryOrderNumber);
+//        }else{
+//            dtbRttDeliveryOrder.setDeliveryOrderNumber(request.getDeliveryOrderNumber());
+//        }
+        if (!StringUtils.hasText(request.getDeliveryOrderNumber())) {
+            // Lấy timestamp dạng YYYYMMDDHHMMSSSSS
             String currentDate = LocalDateTime.now()
-                    .format(DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS"));;
-            // Concatenate brandID, currentYear, and currentDate
-            String deliveryOrderNumber = request.getBranchId() + currentDate + counterString;
+                    .format(DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS"));
+
+            // Lấy số tăng dần để đảm bảo không trùng
+            String uniqueCounter = String.format("%05d", COUNTER.incrementAndGet());
+
+            // Ghép thành mã đơn hàng
+            String deliveryOrderNumber = request.getBranchId() + currentDate + uniqueCounter;
             dtbRttDeliveryOrder.setDeliveryOrderNumber(deliveryOrderNumber);
-        }else{
+        } else {
             dtbRttDeliveryOrder.setDeliveryOrderNumber(request.getDeliveryOrderNumber());
         }
 
